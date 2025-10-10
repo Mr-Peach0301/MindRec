@@ -10,7 +10,7 @@ To install the project, follow these steps:
 
 2. Create a conda environment and activate.
 
-```conda create --name MindRec python=3.9 -y```
+```conda create --name MindRec python=3.10 -y```
 
 ```conda activate MindRec```
 
