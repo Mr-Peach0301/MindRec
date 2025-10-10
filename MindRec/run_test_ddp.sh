@@ -14,8 +14,8 @@ declare -A gen_length=(
     ["mindrec"]=$gen_length_value
 )
 
-BASE_MODEL=/NAS/mengyao/LLaDA-8B-Instruct
-DATA_PATH=../data
+BASE_MODEL=/model/LLaDA-8B-Instruct
+DATA_PATH=./data
 EPOCHS=3
 TEST_BATCH_SIZE=8
 USER_NUM=5000
