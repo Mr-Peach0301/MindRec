@@ -1,6 +1,6 @@
 DATASET=Games # Arts Instruments
-BASE_MODEL=/NAS/mengyao/LLaDA-8B-Instruct
-DATA_PATH=../data
+BASE_MODEL=/model/LLaDA-8B-Instruct
+DATA_PATH=./data
 EPOCHS=3
 USER_NUM=5000
 TASK=mindrec
