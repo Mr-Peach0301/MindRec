@@ -5,9 +5,9 @@ EPOCHS=3
 USER_NUM=5000
 TASK=mindrec
 
-for LR in 1e-4
+for LR in 5e-5 7e-5 1e-4
 do
-    for eps in 0.6
+    for eps in 0.4 0.5 0.6 0.7
     do
         OUTPUT_DIR=./ckpt/${DATASET}_${LR}_${eps}_${EPOCHS}_${TASK}_${USER_NUM}
         echo ${DATASET} ${LR} ${eps} ${TASK}
