@@ -2,7 +2,7 @@
 export CUDA_LAUNCH_BLOCKING=1
 export CUDA_VISIBLE_DEVICES=0,1
 
-DATASET=Arts
+DATASET=Arts # Games Instruments
 
 declare -A category_length=(
     ["Instruments"]=9
@@ -18,21 +18,19 @@ declare -A gen_length=(
 BASE_MODEL=/model/LLaDA-8B-Instruct
 DATA_PATH=../data
 EPOCHS=3
-SIDE=left
 TEST_BATCH_SIZE=8
 USER_NUM=5000
-TRAIN_TASK=seqrec_c_simple
 TASK=seqrec_c_simple
 NUM_BEAMS=10
 
-for lr in 1e-4
+for lr in 5e-5 7e-5 1e-4
 do
-    for eps in 0.6
+    for eps in 0.4 0.5 0.6 0.7
     do
         GEN_LENGTH=${gen_length[$TASK]}
-        OUTPUT_DIR=./ckpt/${DATASET}_${lr}_${eps}_${EPOCHS}_${SIDE}_${TRAIN_TASK}_8_${USER_NUM}/
+        OUTPUT_DIR=./ckpt/${DATASET}_${lr}_${eps}_${EPOCHS}_${TASK}_${USER_NUM}/
         RESULTS_FILE=./results/$DATASET/${lr}_${eps}_${TASK}.json
-        nohup torchrun --nproc_per_node=2 --master_port=4327 test_ddp.py > log1.out \
+        nohup torchrun --nproc_per_node=2 --master_port=4327 test_ddp.py > log.out \
             --ckpt_path $OUTPUT_DIR \
             --base_model $BASE_MODEL\
             --dataset $DATASET \
