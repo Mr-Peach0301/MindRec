@@ -49,52 +49,38 @@ run the code in process.ipynb
 
 ## MindRec
 
-To reproduce the results in RQ1, follow these steps:
+To reproduce the results in of MindRec, follow these steps:
 
-1. Data processing
+```cd /MindRec```
 
-run the code in /without_history/gfn/process.ipynb 
+```bash run_train.sh```
 
-2. Baseline
-
-```cd /without_history/base_line```
-
-```bash ./shell/train_sft_100.sh```
-
-```bash ./shell/train_sft_1500.sh```
-
-```bash ./shell/ppo.sh```
-
-```bash ./shell/dpo.sh```
-
-3. Flower
-
-```cd /without_history/gfn```
-
-```CUDA_VISIBLE_DEVICES=X python train.py task=movie_all_param_1.5B_100 device=gpu > movie_1.5B_0.00001_0.05.out &```
-
-```CUDA_VISIBLE_DEVICES=X python train.py task=movie_all_param_3B_1500 device=gpu > movie_3B_0.00001_0.4.out &```
+```bash run_test_ddp.sh```
 
 ## Baseline
 
-To reproduce the results in RQ2, follow these steps:
+To reproduce the results of baselines, follow these steps:
 
-```cd /with_history```
+```cd /baseline```
 
-1. Train SASRec
+1. SASRec
 
 ```bash run_SASRec.sh```
 
-2. Train and evaluate BIGRec
+2. Tiger
 
 ```bash run_sft.sh```
 
 ```bash evaluate_sft.sh```
 
-3. Train Flower
+3. IDGenRec
 
 ```bash run_sft-gfn_logp_div_s.sh```
 
-4. Train IFairLRS
+4. LETTER-Qwen & LETTER-Llama
+
+```bash item_side_reweight.sh```
+
+5. LETTER-LLaDA
 
 ```bash item_side_reweight.sh```
