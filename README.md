@@ -58,11 +58,15 @@ To reproduce the results of baselines, follow these steps:
 
 4. LETTER-Qwen & LETTER-Llama
 
+```cd /LETTER-LC-Rec```
+
 ```bash run_train.sh```
 
 ```bash run_test_ddp.sh```
 
 5. LETTER-LLaDA
+
+```cd /LETTER-LLaDA```
 
 ```bash run_train.sh```
 
