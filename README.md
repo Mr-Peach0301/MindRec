@@ -21,6 +21,7 @@ To install the project, follow these steps:
 ## Data processing
 
 Our complete dataset is hosted on Hugging Face and will be released publicly soon.
+
 Alternatively, you can run the code in process.ipynb to reproduce it from scratch.
 
 ## MindRec
