@@ -40,23 +40,21 @@ To reproduce the results of baselines, follow these steps:
 
 ```cd /baseline```
 
-1. SASRec
+1. Tiger
 
-```bash run_SASRec.sh```
+```cd /Tiger```
 
-2. Tiger
+```bash run_train.sh```
 
-```bash run_sft.sh```
+```bash run_test.sh```
 
-```bash evaluate_sft.sh```
-
-3. IDGenRec
+2. IDGenRec
 
 ```cd /IDGenRec/command```
 
 ```bash train_standard.sh```
 
-4. LETTER-Qwen & LETTER-Llama
+3. LETTER-Qwen & LETTER-Llama
 
 ```cd /LETTER-LC-Rec```
 
@@ -64,7 +62,7 @@ To reproduce the results of baselines, follow these steps:
 
 ```bash run_test_ddp.sh```
 
-5. LETTER-LLaDA
+4. LETTER-LLaDA
 
 ```cd /LETTER-LLaDA```
 
