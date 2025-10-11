@@ -19,31 +19,12 @@ To install the project, follow these steps:
 ```pip install -r requirements.txt```
 
 ## Data processing
-Due to file size limitations of GitHub, the files of training set are not uploaded to the repository, other files are available. The following steps describe our data processing procedure, using the Video Games dataset as an example.
 
 1. Download the dataset
 
-```wget https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFiles/Video_Games.json.gz```
+Our dataset is available at [link].
 
-```wget https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/metaFiles2/meta_Video_Games.json.gz```
-
-2. Unzip
-
-```gunzip Video_Games.json.gz```
-
-```gunzip meta_Video_Games.json.gz```
-
-```cd /with_history```
-
-3. Process for BIGRec and IFairLRS
-
-```python ./code/process.py --category "Video_Games"```
-
-4. Process for SASRec
-
-```bash to_SASRec.sh```
-
-5. Process for Flower
+2. Hierarchical Category
 
 run the code in process.ipynb
 
@@ -79,8 +60,12 @@ To reproduce the results of baselines, follow these steps:
 
 4. LETTER-Qwen & LETTER-Llama
 
-```bash item_side_reweight.sh```
+```bash run_train.sh```
+
+```bash run_test_ddp.sh```
 
 5. LETTER-LLaDA
 
-```bash item_side_reweight.sh```
+```bash run_train.sh```
+
+```bash run_test_ddp.sh```
