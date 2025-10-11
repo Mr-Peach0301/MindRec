@@ -52,7 +52,9 @@ To reproduce the results of baselines, follow these steps:
 
 3. IDGenRec
 
-```bash run_sft-gfn_logp_div_s.sh```
+```cd /IDGenRec/command```
+
+```bash train_standard.sh```
 
 4. LETTER-Qwen & LETTER-Llama
 
