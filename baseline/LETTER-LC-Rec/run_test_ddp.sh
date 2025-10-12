@@ -8,7 +8,7 @@ declare -A path=(
 )
 
 DATASET=Games
-DATA_PATH=../data
+DATA_PATH=/MindRec/data
 USER_NUM=5000
 
 for LR in 5e-5 1e-4 2e-4
