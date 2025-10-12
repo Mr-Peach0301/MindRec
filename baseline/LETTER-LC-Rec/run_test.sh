@@ -3,7 +3,7 @@ declare -A path=(
     ["qwen2.5"]=/model/Qwen2.5-7B-Instruct/
 )
 
-DATA_PATH=../data
+DATA_PATH=/MindRec/data
 USER_NUM=5000
 
 for DATASET in Instruments
