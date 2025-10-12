@@ -1,4 +1,4 @@
-DATA_PATH=../data
+DATA_PATH=/MindRec/data
 USER_NUM=5000
 
 for DATASET in Instruments Games Arts
