@@ -3,7 +3,7 @@ declare -A path=(
     ["qwen2.5"]=/model/Qwen2.5-7B-Instruct/
 )
 DATASET=Games
-DATA_PATH=../data
+DATA_PATH=/MindRec/data
 EPOCHS=3
 USER_NUM=5000
 TASK=seqrec
