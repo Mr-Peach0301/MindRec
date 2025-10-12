@@ -1,6 +1,6 @@
 DATASET=Instruments
 BASE_MODEL=/model/LLaDA-8B-Instruct
-DATA_PATH=../data
+DATA_PATH=/MindRec/data
 EPOCHS=3
 TEST_BATCH_SIZE=8
 USER_NUM=5000
