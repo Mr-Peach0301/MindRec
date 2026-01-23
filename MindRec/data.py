@@ -108,7 +108,7 @@ class SeqRecDataset(BaseDataset):
 
         self.prompts = all_prompt['mindrec']
         self.limit_size = 0
-        self.limit_user_num = 5000
+        self.limit_user_num = args.user_num
 
         # load data
         self._load_data()
@@ -164,10 +164,7 @@ class SeqRecDataset(BaseDataset):
                 
                 one_data["c1"] = "".join(c[0])
                 one_data["c2"] = "".join(c[1])
-                if self.dataset != 'Games':
-                    one_data["c3"] = "".join(c[2])
-                else:
-                    one_data["c3"] =""
+                one_data["c3"] = "".join(c[2])
                 history = items[:i]
                 if self.max_his_len > 0:
                     history = history[-self.max_his_len:]
@@ -194,10 +191,7 @@ class SeqRecDataset(BaseDataset):
             
             one_data["c1"] = "".join(c[0])
             one_data["c2"] = "".join(c[1])
-            if self.dataset != 'Games':
-                one_data["c3"] = "".join(c[2])
-            else:
-                one_data["c3"] =""
+            one_data["c3"] = "".join(c[2])
             
             history = items[:-2]
             if self.max_his_len > 0:
@@ -225,10 +219,7 @@ class SeqRecDataset(BaseDataset):
             
             one_data["c1"] = "".join(c[0])
             one_data["c2"] = "".join(c[1])
-            if self.dataset != 'Games':
-                one_data["c3"] = "".join(c[2])
-            else:
-                one_data["c3"] =""
+            one_data["c3"] = "".join(c[2])
             history = items[:-1]
             if self.max_his_len > 0:
                 history = history[-self.max_his_len:]

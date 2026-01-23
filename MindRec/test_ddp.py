@@ -46,10 +46,10 @@ def select_top_combinations(probs, input_tensor, input_scores, allowed_tokens, n
     allow_e = block_end-prompt_lengths
     for i in range(allow_s, allow_e):
         mask[i-allow_s, list(allowed_tokens[i])] = 1
-    probs = probs * mask.unsqueeze(0)
+    probs = probs.masked_fill(mask.unsqueeze(0) == 0, float('-inf'))
 
     pad_mask = (input_tensor[..., block_start:block_end] == pad_token).unsqueeze(-1)  # [batch_size, block_length, 1]
-    probs = probs * pad_mask.float()
+    probs = probs.masked_fill(pad_mask == 0, float('-inf'))
 
     # Get topk probabilities and tokens
     topk_probs, topk_tokens = torch.topk(probs, k=num_beam, dim=-1)  # [batch_size, block_length, num_beam]
@@ -73,7 +73,7 @@ def select_top_combinations(probs, input_tensor, input_scores, allowed_tokens, n
     beam_tensor[batch_indices, torch.arange(num_beam, device=device).unsqueeze(0), seq_indices] = token_indices
     
     # Update scores
-    beam_score *= global_topk_probs.unsqueeze(-1)
+    beam_score += global_topk_probs.unsqueeze(-1)
     
     return beam_tensor, beam_score
 
@@ -85,14 +85,14 @@ def select_top_token(probs, input_tensor, input_scores, allowed_tokens, num_beam
     # Create mask using vectorized operations
     mask = torch.zeros((vocab_size), device=device)
     mask[list(allowed_tokens[index])] = 1
-    probs = probs * mask.unsqueeze(0)
+    probs = probs.masked_fill(mask.unsqueeze(0) == 0, float('-inf'))
 
     # Get topk probabilities and tokens
     topk_probs, topk_tokens = torch.topk(probs, k=num_beam, dim=-1)  # [batch_size, num_beam]
     
     beam_tensor = input_tensor.unsqueeze(1).expand(-1, num_beam, -1).clone()
     beam_tensor[:, :, index + prompt_lengths] = topk_tokens
-    beam_score = input_scores.unsqueeze(1) * topk_probs.unsqueeze(-1)
+    beam_score = input_scores.unsqueeze(1) + topk_probs.unsqueeze(-1)
     
     return beam_tensor, beam_score
 
@@ -177,69 +177,7 @@ def topk(new_beam_scores, new_beam_sequences, num_beam, gen_length, step):
                     _, _, _ = heapq.heappop(heap)
 
                     heapq.heappush(heap, (-adjusted_score, idx, sequence))
-                    seen_sequences.add(sequence_tuple)
-        
-        heap_sorted = sorted(heap, key=lambda x: x[0])
-        selected_scores = [-score for score, _, _ in heap_sorted]
-        selected_indices = [idx for _, idx, _ in heap_sorted]
-        
-        top_scores_list.append(torch.tensor(selected_scores))
-        top_indices_list.append(torch.tensor(selected_indices))
-    
-    return torch.stack(top_scores_list).to('cuda'), torch.stack(top_indices_list).to('cuda')
-
-def topk_with_hybrid_diversity(new_beam_scores, new_beam_sequences, num_beam, gen_length,
-                                        diversity_strength_1=0.5, diversity_strength_2=0.7, diversity_strength_3=0.9):
-    batch_size = new_beam_scores.size(0)
-    top_scores_list = []
-    top_indices_list = []
-    
-    for i in range(batch_size):
-        batch_scores = new_beam_scores[i].squeeze(-1)
-        batch_sequences = new_beam_sequences[i]
-
-        seen_sequences = set()
-        seen_prefixes = [set(), set(), set()]
-        diversity_strengths = [diversity_strength_1, diversity_strength_2, diversity_strength_3]
-        
-        import heapq
-        heap = []
-        
-        sorted_scores, sorted_indices = torch.sort(batch_scores, descending=True)
-        
-        for orig_score, idx in zip(sorted_scores, sorted_indices):
-            sequence = batch_sequences[idx][-5:].cpu().numpy().tolist()
-            sequence_tuple = tuple(sequence)
-            
-            if sequence_tuple in seen_sequences:
-                continue
-
-            adjusted_score = orig_score
-            for n in reversed(range(3)):
-                prefix = tuple(sequence[:n+1])
-                if prefix in seen_prefixes[n]:
-                    adjusted_score *= (1 - diversity_strengths[n])
-                    break
-            
-            if len(heap) < num_beam:
-                heapq.heappush(heap, (-adjusted_score, idx, sequence))
-                seen_sequences.add(sequence_tuple)
-                for n in range(3):
-                    seen_prefixes[n].add(tuple(sequence[:n+1]))
-            else:
-                if adjusted_score > -heap[0][0]:
-                    worst_neg_score, worst_idx, worst_sequence = heapq.heappop(heap)
-                    
-                    seen_sequences.remove(tuple(worst_sequence))
-                    for n in range(3):
-                        worst_prefix = tuple(worst_sequence[:n+1])
-                        if worst_prefix in seen_prefixes[n]:
-                            seen_prefixes[n].remove(worst_prefix)
-
-                    heapq.heappush(heap, (-adjusted_score, idx, sequence))
-                    seen_sequences.add(sequence_tuple)
-                    for n in range(3):
-                        seen_prefixes[n].add(tuple(sequence[:n+1]))
+                    seen_sequences.append(sequence)
         
         heap_sorted = sorted(heap, key=lambda x: x[0])
         selected_scores = [-score for score, _, _ in heap_sorted]
@@ -255,21 +193,20 @@ def generate(model, prompt, gen_length=128, cfg_scale=0.,
             remasking='low_confidence', mask_id=126336, num_beam=4, threshold=0.5, mask_indices=None, allowed_tokens=None):
     with torch.cuda.amp.autocast(enabled=True):
         beam_sequences = prompt.unsqueeze(1)
-        beam_scores = torch.full((prompt.shape[0], 1, 1), 1, dtype=torch.bfloat16, device=model.device)
+        beam_scores = torch.full((prompt.shape[0], 1, 1), 1e-15, dtype=torch.bfloat16, device=model.device)
         prompt_lengths = prompt.shape[1] - gen_length
 
         step = len(mask_indices)
         for s in range(step):
 
             if s < step-4:
-            # if s < step:
                 input_tensor = beam_sequences.reshape(-1, beam_sequences.shape[-1])
                 input_scores = beam_scores.reshape(-1, beam_scores.shape[-1])
 
                 logits = model(input_tensor).logits
 
                 logits_with_noise = add_gumbel_noise(logits, temperature=args.gen_temperature)
-                probs = F.softmax(logits_with_noise, dim=-1)
+                probs = F.log_softmax(logits_with_noise, dim=-1)
 
                 candidates, candidate_scores = select_top_token(probs, input_tensor, input_scores, allowed_tokens, num_beam, mask_indices[s], prompt_lengths)
 
@@ -278,7 +215,6 @@ def generate(model, prompt, gen_length=128, cfg_scale=0.,
 
                 if candidates.shape[1] > num_beam:
                     top_scores, top_indices = topk_without_duplicates(candidate_scores, candidates, num_beam, gen_length)
-                    # top_scores, top_indices = torch.topk(candidate_scores.squeeze(-1), k=num_beam, dim=1)
                     beam_sequences = torch.gather(
                         candidates, dim=1, index=top_indices.unsqueeze(-1).expand(-1, -1, candidates.size(-1))
                     )
@@ -297,7 +233,7 @@ def generate(model, prompt, gen_length=128, cfg_scale=0.,
                 logits = model(input_tensor).logits
 
                 logits_with_noise = add_gumbel_noise(logits, temperature=args.gen_temperature)
-                probs = F.softmax(logits_with_noise, dim=-1)
+                probs = F.log_softmax(logits_with_noise, dim=-1)
 
                 candidates, candidate_scores = select_top_combinations(probs, input_tensor, input_scores, allowed_tokens, num_beam, prompt.shape[1]-5, prompt.shape[1]-1, prompt_lengths)
 
@@ -306,7 +242,6 @@ def generate(model, prompt, gen_length=128, cfg_scale=0.,
 
                 if candidates.shape[1] > num_beam:
                     top_scores, top_indices = topk(candidate_scores, candidates, num_beam, gen_length, s)
-                    # top_scores, top_indices = torch.topk(candidate_scores.squeeze(-1), k=num_beam, dim=1)
                     beam_sequences = torch.gather(
                         candidates, dim=1, index=top_indices.unsqueeze(-1).expand(-1, -1, candidates.size(-1))
                     )
@@ -438,7 +373,7 @@ def test_ddp(args):
                                 gen_length=args.gen_length,
                                 cfg_scale=args.cfg_scale,
                                 remasking='low_confidence',
-                                num_beam=args.num_beams,
+                                num_beam=num_beams,
                                 threshold=args.threshold,
                                 mask_indices=mask_indices,
                                 allowed_tokens=allowed_tokens,
@@ -470,6 +405,10 @@ def test_ddp(args):
                 total += sum(bs_gather_list)
                 res_gather_list = [None for _ in range(world_size)]
                 dist.all_gather_object(obj=topk_res, object_list=res_gather_list)
+                gather_code2num_list = [None for _ in range(world_size)]
+                dist.all_gather_object(obj=code2num, object_list=gather_code2num_list)
+                gather_CC_list = [None for _ in range(world_size)]
+                dist.all_gather_object(obj=CC, object_list=gather_CC_list)
 
 
                 if local_rank == 0:
@@ -506,10 +445,17 @@ def test_ddp(args):
             
             
             if local_rank == 0:
+                final_code2num = {}
+                for c2n in gather_code2num_list:
+                    for k, v in c2n.items():
+                        final_code2num[k] = final_code2num.get(k, 0) + v
+                
+                final_CC = sum(gather_CC_list)
+
                 for m in metrics_results:
                     metrics_results[m] = metrics_results[m] / total
-                metrics_results['CC'] = CC
-                metrics_results['H'], metrics_results['TTR'] = calculate_metrics(code2num)
+                metrics_results['CC'] = final_CC
+                metrics_results['H'], metrics_results['TTR'] = calculate_metrics(final_code2num)
 
                 all_prompt_results.append(metrics_results)
                 print("======================================================")

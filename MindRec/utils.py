@@ -68,7 +68,7 @@ def parse_train_args(parser):
     parser.add_argument("--logging_step", type=int, default=10)
     parser.add_argument("--model_max_length", type=int, default=512)
     parser.add_argument("--weight_decay", type=float, default=0.01)
-    parser.add_argument("--user_num", type=int, default=5000)
+    parser.add_argument("--user_num", type=int, default=50000)
 
     parser.add_argument("--lora_r", type=int, default=8)
     parser.add_argument("--lora_alpha", type=int, default=32)
@@ -100,7 +100,7 @@ def parse_test_args(parser):
     parser.add_argument("--lora", action="store_true", default=True)
     parser.add_argument("--filter_items", action="store_true", default=False,
                         help="whether filter illegal items")
-    parser.add_argument("--user_num", type=int, default=5000)
+    parser.add_argument("--user_num", type=int, default=50000)
 
     parser.add_argument("--results_file", type=str,
                         default="./results/test-ddp.json",
@@ -109,7 +109,7 @@ def parse_test_args(parser):
     parser.add_argument("--test_batch_size", type=int, default=1)
     parser.add_argument("--cfg_scale", type=float, default=0.)
     parser.add_argument("--gen_temperature", type=float, default=0.0)
-    parser.add_argument("--num_beams", type=int, default=10)
+    parser.add_argument("--num_beams", type=int, default=20)
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--gen_length", type=int, default=50)
     parser.add_argument("--sample_num", type=int, default=-1,

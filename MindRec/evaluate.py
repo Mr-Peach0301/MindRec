@@ -8,8 +8,10 @@ def update_counts_from_strings(existing_dict, slist):
     
     for s in slist:
         matches = pattern.findall(s)
+        string = ''
         for item in matches:
-            count_dict[f"<{item}>"] += 1
+            string += item
+        count_dict[f"<{string}>"] += 1
     return dict(count_dict)
 
 def get_topk_results(predictions, scores, targets, k, task, code2num, all_items=None):
@@ -18,9 +20,7 @@ def get_topk_results(predictions, scores, targets, k, task, code2num, all_items=
     B = len(targets)
     predictions = [_.split("### Response:assistant\n\n")[-1] for _ in predictions]
     predictions = [_.split("-")[-1] for _ in predictions]
-    print(predictions)
     predictions = [_.strip().replace(" ","") for _ in predictions]
-    code2num = update_counts_from_strings(code2num, predictions)
 
     if all_items is not None:
         for i, seq in enumerate(predictions):
@@ -28,12 +28,18 @@ def get_topk_results(predictions, scores, targets, k, task, code2num, all_items=
                 scores[i] = -1000
                 out_of_dataset += 1
 
+    top_collected = []
+
     for b in range(B):
         batch_seqs = predictions[b * k: (b + 1) * k]
         batch_scores = scores[b * k: (b + 1) * k]
 
         pairs = [(a, b) for a, b in zip(batch_seqs, batch_scores)]
         sorted_pairs = sorted(pairs, key=lambda x: x[1], reverse=True)
+
+        current_top10 = [p[0] for p in sorted_pairs[:10]] 
+        top_collected.extend(current_top10)
+
         target_item = targets[b]
         one_results = []
         for sorted_pred in sorted_pairs:
@@ -43,6 +49,7 @@ def get_topk_results(predictions, scores, targets, k, task, code2num, all_items=
                 one_results.append(0)
 
         results.append(one_results)
+    code2num = update_counts_from_strings(code2num, top_collected)
 
     return results, out_of_dataset, code2num
 
@@ -52,7 +59,6 @@ def get_topk_results_without_beam(predictions, targets, k, task, code2num, all_i
     B = len(targets)
     predictions = [_.split("### Response:assistant\n\n")[-1] for _ in predictions]
     predictions = [_.split("-")[-1] for _ in predictions]
-    print(predictions)
     predictions = [_.strip().replace(" ","") for _ in predictions]
     code2num = update_counts_from_strings(code2num, predictions)
 
@@ -61,8 +67,6 @@ def get_topk_results_without_beam(predictions, targets, k, task, code2num, all_i
             results.append([1])
         else:
             results.append([0])
-
-    print(results)
 
     return results, out_of_dataset, code2num
 
