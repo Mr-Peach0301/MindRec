@@ -22,7 +22,7 @@ To install the project, follow these steps:
 
 Our complete dataset is hosted on Hugging Face :hugging_face: and will be made publicly available.
 
-Alternatively, you can run the code in process.ipynb to reproduce it from scratch.
+Alternatively, you can run the code in ```/data/process.py``` to reproduce it from scratch.
 
 ## :bulb: MindRec
 
