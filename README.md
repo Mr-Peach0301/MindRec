@@ -2,7 +2,7 @@
 
 This repository hosts the official PyTorch-based implementation of the method presented in the paper "MindRec: Mind-inspired Progressive Generative Recommendation".
 
-## Installation
+## :gear: Installation
 
 To install the project, follow these steps:
 
@@ -24,7 +24,7 @@ Our complete dataset is hosted on Hugging Face :hugging_face: and will be made p
 
 Alternatively, you can run the code in process.ipynb to reproduce it from scratch.
 
-## MindRec
+## :bulb: MindRec
 
 To reproduce the results of MindRec, follow these steps:
 
